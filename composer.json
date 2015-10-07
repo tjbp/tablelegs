@@ -1,0 +1,28 @@
+{
+    "name": "tjbp/tablelegs",
+    "description": "Easily create HTML tables with ordering, filtering and pagination",
+    "keywords": ["table", "build", "html", "view", "laravel"],
+    "license": "GPL-3.0",
+    "authors": [
+        {
+            "name": "Tom Pitcher",
+            "email": "github.com@tjbp.net"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/tjbp/tablelegs/issues",
+        "source": "https://github.com/tjbp/tablelegs"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tablelegs\\": "src/lib/"
+        }
+    },
+    "require": {
+        "php": ">=5.5.9",
+        "illuminate/support": "^5.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    }
+}
