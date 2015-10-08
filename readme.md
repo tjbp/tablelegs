@@ -1,6 +1,6 @@
 ## Tablelegs
 
-Tablelegs allows you to easily build an HTML table from a database model, including support for filters, sortable columns and pagination. It is dependent upon the [Laravel framework](http://laravel.com)'s database and HTTP components.
+Tablelegs allows you to easily build an HTML table from a database model, including support for filters, sortable columns and pagination. Tablelegs does not output HTML, it simply provides helpers for outputting a table according to a purpose-built class and can generate URLs for enabling filters and sorting. It is dependent upon the [Laravel framework](http://laravel.com)'s database and HTTP components.
 
 ### Installation
 
@@ -8,7 +8,7 @@ Tablelegs is installable [with Composer via Packagist](https://packagist.org/pac
 
 ### Usage
 
-Extend the Tablelegs\Table class:
+Extend the Tablelegs\Table class for each table you want to build:
 
 ```php
 use App\User;
@@ -60,18 +60,18 @@ public function getUsers(Request $request)
 
 Finally use the Table object in the view:
 
-```php
-<div>
-    <?php foreach ($table->getFilters() as $filter): ?>
-        <?php echo $filter->getName() ?>:
-        <?php foreach ($filter->getOptions() as $filter_option_key => $filter_option_name): ?>
-            <a href="<?php echo $filter->getUrl($filter_option_key) ?>"><?php echo $filter_option_name ?></a>
-        <?php endforeach; ?>
+```html+php
+<!-- Loop through the filters, outputting the name followed by a link to enable each option -->
+<?php foreach ($table->getFilters() as $filter): ?>
+    <?php echo $filter->getName() ?>:
+    <?php foreach ($filter->getOptions() as $filter_option_key => $filter_option_name): ?>
+        <a href="<?php echo $filter->getUrl($filter_option_key) ?>"><?php echo $filter_option_name ?></a>
     <?php endforeach; ?>
-</div>
+<?php endforeach; ?>
 <table>
     <thead>
         <tr>
+            <!-- Loop through the column headers, outputting the names as links for sorting, and an icon indicating the sort order -->
             <?php foreach ($table->getColumnHeaders() as $column_header): ?>
                 <th>
                     <a href="<?php echo $column_header->getUrl() ?>"><?php echo $column_header->getName() ?></a>
@@ -83,6 +83,7 @@ Finally use the Table object in the view:
         </tr>
     </thead>
     <tbody>
+        <!-- Loop through the query results -->
         <?php foreach ($table->getRows() as $user): ?>
             <tr>
                 <td><?php echo $user->getKey() ?></td>
@@ -101,7 +102,7 @@ Finally use the Table object in the view:
 
 Views for use with Laravel's Blade templating system and [ZURB Foundation](http://foundation.zurb.com/) are also included, as used in the following example:
 
-```php
+```html+php
 @include('tablelegs::filter')
 <table class="expand">
     @include('tablelegs::header')
