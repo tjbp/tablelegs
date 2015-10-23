@@ -93,6 +93,14 @@ class TableFilter
      */
     public function getUrl($option)
     {
+        if ($this->isActive($option)) {
+            $params = $this->request->all();
+
+            unset($params[$this->getKey()]);
+
+            return '?' . http_build_query($params);
+        }
+
         return '?' . http_build_query([$this->key => $option] + $this->request->all());
     }
 

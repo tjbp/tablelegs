@@ -23,12 +23,16 @@ along with Tablelegs.  If not, see <http://www.gnu.org/licenses/>.
 <thead>
     <tr>
         @foreach ($table->getColumnHeaders() as $column_header)
-            <th>
-                <a href="{{ $column_header->getUrl() }}">{{ $column_header->getName() }}</a>
-                @if ($column_header->isSortKey())
-                    {{ $table->getSortOrder() == 'asc' ? '▲' : '▼' }}
-                @endif
-            </th>
+            @if ($column_header->isSortable())
+                <th>
+                    <a href="{{ $column_header->getUrl() }}">{{ $column_header->getName() }}</a>
+                    @if ($column_header->isSortKey())
+                        {{ $table->isSortOrder('asc') ? '▲' : '▼' }}
+                    @endif
+                </th>
+            @else
+                <th>{{ $column_header->getName() }}</th>
+            @endif
         @endforeach
     </tr>
 </thead>

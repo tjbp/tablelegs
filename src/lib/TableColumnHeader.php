@@ -54,13 +54,25 @@ class TableColumnHeader
      * @param array $name
      * @return void
      */
-    public function __construct(Request $request, $key, $name)
+    public function __construct(Table $table, Request $request, $key, $name)
     {
         $this->key = $key;
 
         $this->name = $name;
 
         $this->request = $request;
+
+        $this->table = $table;
+    }
+
+    /**
+     * Return the key for the column header.
+     *
+     * @return string
+     */
+    public function getKey()
+    {
+        return $this->key;
     }
 
     /**
@@ -80,6 +92,10 @@ class TableColumnHeader
      */
     public function getUrl()
     {
+        if (!$this->isSortable()) {
+            return '';
+        }
+
         $params = ['sort_key' => $this->key];
 
         if ($this->isSortKey()) {
@@ -90,12 +106,22 @@ class TableColumnHeader
     }
 
     /**
-     * Check if the current request is sorted according to this column header.
+     * Return true if the current request is sorted according to this column header.
      *
      * @return boolean
      */
     public function isSortKey()
     {
-        return $this->request->input('sort_key') == $this->key;
+        return $this->key == $this->table->getSortKey();
+    }
+
+    /**
+     * Return true if this column header is sortable (non-null key).
+     *
+     * @return boolean
+     */
+    public function isSortable()
+    {
+        return !is_null($this->key);
     }
 }

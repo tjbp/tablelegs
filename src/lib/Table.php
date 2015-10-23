@@ -22,8 +22,9 @@ along with Tablelegs.  If not, see <http://www.gnu.org/licenses/>.
 namespace Tablelegs;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
-class Table
+abstract class Table
 {
     /**
      * Column headers for the table. URL-friendly keys with human values.
@@ -40,25 +41,32 @@ class Table
     public $filters = [];
 
     /**
-     * Class name for the base database model.
+     * Array of relationships to eager load.
      *
-     * @var $model
+     * @var $eagerLoad
      */
-    public $model;
+    public $eagerLoad = [];
+
+    /**
+     * Class name for the paginator presenter.
+     *
+     * @var $presenter
+     */
+    public $presenter;
 
     /**
      * Default key to sort by.
      *
      * @var $defaultSortKey
      */
-    private $defaultSortKey;
+    public $defaultSortKey;
 
     /**
      * Default sort order.
      *
      * @var $defaultSortOrder
      */
-    private $defaultSortOrder;
+    public $defaultSortOrder;
 
     /**
      * Key the current request will be sorted by.
@@ -96,20 +104,31 @@ class Table
     private $rows;
 
     /**
+     * Current table page.
+     *
+     * @var $page
+     */
+    private $page;
+
+    /**
      * Constructor for dependency injection.
      *
+     * @param mixed $builder
      * @param \Illuminate\Http\Request $request
      * @return void
      */
-    public function __construct(Request $request)
+    public function __construct($builder, Request $request)
     {
         // Set the default sorting settings
-        $this->defaultSortKey = array_keys($this->columnHeaders)[0];
+        if (is_null($this->defaultSortKey)) {
+            $this->defaultSortKey = array_keys($this->columnHeaders)[0];
+        }
 
-        $this->defaultSortOrder = 'asc';
+        if (is_null($this->defaultSortOrder)) {
+            $this->defaultSortOrder = 'asc';
+        }
 
-        // Instantiate the query builder
-        $this->builder = call_user_func($this->model . '::query');
+        $this->builder = $builder;
 
         $this->request = $request;
 
@@ -117,12 +136,25 @@ class Table
 
         $this->sortOrder = $request->input('sort_order') ?: $this->defaultSortOrder;
 
+        $sort_method = 'sort' . studly_case($this->sortKey);
+
+        // Apply the eager loading for the query
+        foreach ($this->eagerLoad as $relationship) {
+            $this->builder->with($relationship);
+        }
+
         // Apply the sorting for the query
-        $this->builder->orderBy($this->sortKey, $this->sortOrder);
+        if (method_exists($this, $sort_method)) {
+            $this->$sort_method($this->builder, $this->sortOrder);
+        } else {
+            $this->builder->orderBy($this->sortKey, $this->sortOrder);
+        }
+
+        $column_headers = [];
 
         // Instantiate column header objects
-        foreach ($this->columnHeaders as $column_key => $column_name) {
-            $column_headers[] = new TableColumnHeader($this->request, $column_key, $column_name);
+        foreach ($this->columnHeaders as $column_name => $column_key) {
+            $column_headers[] = new TableColumnHeader($this, $this->request, $column_key, $column_name);
         }
 
         $this->columnHeaders = $column_headers;
@@ -137,17 +169,25 @@ class Table
 
             // Execute the filter method if enabled
             if ($request->has($filter_key)) {
-                $filter_option = $request->input($filter_key);
+                $filter_option = ucfirst(preg_replace('/[^a-z0-9]/i', ' ', $request->input($filter_key)));
 
-                if (!isset($this->filters[$filter_key][$request->input($filter_key)])) {
+                $filter_key = ucfirst(preg_replace('/[^a-z0-9]/i', ' ', $filter_key));
+
+                if (!in_array($filter_option, $this->filters[$filter_key])) {
                     continue;
                 }
 
-                $this->builder = $this->${"filter$filter_key$filter_option"}($this->builder);
+                $filter_method = 'filter' . Str::studly($filter_key) . Str::studly($filter_option);
+
+                if (method_exists($this, $filter_method)) {
+                    $this->$filter_method($this->builder);
+                }
             }
         }
 
         $this->filters = $filters;
+
+        $this->page = $this->request->input('page') ?: 1;
     }
 
     /**
@@ -215,5 +255,25 @@ class Table
     public function hasRows()
     {
         return (bool) $this->builder->exists();
+    }
+
+    /**
+     * Return custom paginator configured to append to existing URL parameters.
+     *
+     * @return array
+     */
+    public function getPaginator()
+    {
+        return new $this->presenter($this->getRows()->appends($this->request->all()));
+    }
+
+    /**
+     * Return true if the passed argument is the current table's sort order.
+     *
+     * @return boolean
+     */
+    public function isSortOrder($sortOrder)
+    {
+        return $sortOrder == $this->sortOrder;
     }
 }
