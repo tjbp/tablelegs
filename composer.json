@@ -1,6 +1,6 @@
 {
     "name": "tjbp/tablelegs",
-    "description": "Easily create HTML tables with ordering, filtering and pagination",
+    "description": "Easily create HTML tables with ordering, filtering and pagination.",
     "keywords": ["table", "build", "html", "view", "laravel"],
     "license": "GPL-3.0",
     "authors": [
