@@ -278,4 +278,19 @@ abstract class Table
     {
         return $sortOrder == $this->sortOrder;
     }
+
+    /**
+     * Add a relationship to the eager loads.
+     *
+     * @param mixed $relation
+     * @return void
+     */
+    public function addEagerLoad($relation)
+    {
+        if (is_array($relation)) {
+            $this->eagerLoad = array_values($relation) + $this->eagerLoad;
+        } else {
+            $this->eagerLoad[] = $relation;
+        }
+    }
 }
