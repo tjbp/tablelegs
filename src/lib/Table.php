@@ -159,6 +159,8 @@ abstract class Table
 
         $this->columnHeaders = $column_headers;
 
+        $filters = [];
+
         // Instantiate filter objects
         foreach ($this->filters as $filter_name => $filter_options) {
             $filter = new TableFilter($this->request, $filter_name, $filter_options);
