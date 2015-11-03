@@ -21,17 +21,41 @@ along with Tablelegs.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Tablelegs;
 
+use BadMethodCallException;
+use DomainException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 
 abstract class Table
 {
+    /**
+     * Data source for the rows.
+     *
+     * @var $db
+     */
+    protected $db;
+
+    /**
+     * Current request object.
+     *
+     * @var $request
+     */
+    private $request;
+
     /**
      * Column headers for the table. URL-friendly keys with human values.
      *
      * @var $columnHeaders
      */
     public $columnHeaders = [];
+
+    /**
+     * Array of TableColumnHeader objects.
+     *
+     * @var $columnHeaderObjects
+     */
+    public $columnHeaderObjects = [];
 
     /**
      * Array of arrays; filter names containing available options.
@@ -41,11 +65,18 @@ abstract class Table
     public $filters = [];
 
     /**
-     * Array of relationships to eager load.
+     * Array of TableFilter objects.
      *
-     * @var $eagerLoad
+     * @var $filterObjects
      */
-    public $eagerLoad = [];
+    public $filterObjects = [];
+
+    /**
+     * Class name for the data source wrapper.
+     *
+     * @var $dbClass
+     */
+    public $dbClass;
 
     /**
      * Class name for the paginator presenter.
@@ -83,41 +114,13 @@ abstract class Table
     private $sortOrder;
 
     /**
-     * Query builder for the model.
+     * Constructor for populating various properties.
      *
-     * @var $builder
-     */
-    private $builder;
-
-    /**
-     * Current request object.
-     *
-     * @var $request
-     */
-    private $request;
-
-    /**
-     * Cache of the query results.
-     *
-     * @var $rows
-     */
-    private $rows;
-
-    /**
-     * Current table page.
-     *
-     * @var $page
-     */
-    private $page;
-
-    /**
-     * Constructor for dependency injection.
-     *
-     * @param mixed $builder
-     * @param \Illuminate\Http\Request $request
+     * @param mixed $db
+     * @param \Illuminate\Http\Request|null $request
      * @return void
      */
-    public function __construct($builder, Request $request)
+    public function __construct($db, $request = null)
     {
         // Set the default sorting settings
         if (is_null($this->defaultSortKey)) {
@@ -128,50 +131,100 @@ abstract class Table
             $this->defaultSortOrder = 'asc';
         }
 
-        $this->builder = $builder;
+        $this->constructDatabase($db);
 
-        $this->request = $request;
+        $this->request = is_null($request) ? Request::capture() : $request;
 
-        $this->sortKey = $request->input('sort_key') ?: $this->defaultSortKey;
+        $this->sortKey = $this->request->input('sort_key') ?: $this->defaultSortKey;
 
-        $this->sortOrder = $request->input('sort_order') ?: $this->defaultSortOrder;
+        $this->sortOrder = $this->request->input('sort_order') ?: $this->defaultSortOrder;
 
-        $sort_method = 'sort' . studly_case($this->sortKey);
+        $this->constructColumnHeaders();
 
-        // Apply the eager loading for the query
-        foreach ($this->eagerLoad as $relationship) {
-            $this->builder->with($relationship);
-        }
+        $this->constructFilters();
 
-        // Apply the sorting for the query
-        if (method_exists($this, $sort_method)) {
-            $this->$sort_method($this->builder, $this->sortOrder);
+        $this->runFilters();
+
+        $this->runSorting();
+    }
+
+    /**
+     * Instantiate the database.
+     *
+     * @param mixed $db
+     * @return void
+     */
+    private function constructDatabase($db)
+    {
+        if (is_null($this->dbClass)) {
+            if (is_array($db)) {
+                if (array_keys($db) !== range(0, count($db) - 1)) {
+                    $this->db = new Databases\AssociativeArray($db);
+                } else {
+                    $this->db = new Databases\NumericArray($db);
+                }
+            } elseif ($db instanceof \Illuminate\Support\Collection) {
+                $this->db = new Databases\LaravelCollection($db);
+            } elseif ($db instanceof \Illuminate\Database\Eloquent\Builder) {
+                $this->db = new Databases\LaravelEloquent($db);
+            } elseif (!is_object($db)) {
+                throw new InvalidArgumentException('Source data must be an object or array');
+            } else {
+                $class_name = get_class($db);
+
+                throw new DomainException("Please add source class for handling $class_name objects");
+            }
         } else {
-            $this->builder->orderBy($this->sortKey, $this->sortOrder);
+            $this->db = new $dbClass($db);
         }
+    }
 
-        $column_headers = [];
-
-        // Instantiate column header objects
+    /**
+     * Instantiate the column headers.
+     *
+     * @return void
+     */
+    private function constructColumnHeaders()
+    {
         foreach ($this->columnHeaders as $column_name => $column_key) {
-            $column_headers[] = new TableColumnHeader($this, $this->request, $column_key, $column_name);
+            $this->columnHeaderObjects[] = new TableColumnHeader(
+                $this,
+                $this->request,
+                $column_key,
+                $column_name
+            );
         }
+    }
 
-        $this->columnHeaders = $column_headers;
-
-        $filters = [];
-
-        // Instantiate filter objects
+    /**
+     * Instantiate the filters.
+     *
+     * @return void
+     */
+    private function constructFilters()
+    {
         foreach ($this->filters as $filter_name => $filter_options) {
-            $filter = new TableFilter($this->request, $filter_name, $filter_options);
+            $this->filterObjects[] = new TableFilter(
+                $this->request,
+                $filter_name,
+                $filter_options
+            );
+        }
+    }
 
-            $filters[] = $filter;
-
+    /**
+     * Run the filters.
+     *
+     * @return void
+     */
+    private function runFilters()
+    {
+        foreach ($this->filterObjects as $filter) {
             $filter_key = $filter->getKey();
 
             // Execute the filter method if enabled
-            if ($request->has($filter_key)) {
-                $filter_option = ucfirst(preg_replace('/[^a-z0-9]/i', ' ', $request->input($filter_key)));
+            if ($this->request->has($filter_key)) {
+                $filter_option = ucfirst(preg_replace('/[^a-z0-9]/i', ' ', $this->request->input($filter_key)));
 
                 $filter_key = ucfirst(preg_replace('/[^a-z0-9]/i', ' ', $filter_key));
 
@@ -182,14 +235,27 @@ abstract class Table
                 $filter_method = 'filter' . Str::studly($filter_key) . Str::studly($filter_option);
 
                 if (method_exists($this, $filter_method)) {
-                    $this->$filter_method($this->builder);
+                    $this->$filter_method();
                 }
             }
         }
+    }
 
-        $this->filters = $filters;
+    /**
+     * Run the sorting.
+     *
+     * @return void
+     */
+    private function runSorting()
+    {
+        $sort_method = 'sort' . studly_case($this->sortKey);
 
-        $this->page = $this->request->input('page') ?: 1;
+        // Apply the sorting for the query
+        if (method_exists($this, $sort_method)) {
+            $this->$sort_method($this->sortOrder);
+        } else {
+            $this->db->sort($this->sortKey, $this->sortOrder);
+        }
     }
 
     /**
@@ -219,7 +285,7 @@ abstract class Table
      */
     public function getFilters()
     {
-        return $this->filters;
+        return $this->filterObjects;
     }
 
     /**
@@ -229,44 +295,42 @@ abstract class Table
      */
     public function getColumnHeaders()
     {
-        return $this->columnHeaders;
+        return $this->columnHeaderObjects;
+    }
+
+
+    /**
+     * Return paginated rows.
+     *
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function paginate($perPage = 15, $columns = ['*'], $pageName = 'page', $page = null)
+    {
+        $per_page = ($this->request->has('per_page'))
+            ? $this->request->get('per_page')
+            : $perPage;
+
+        $paginator = $this->db->paginate($per_page, $columns, $pageName, $page);
+
+        $paginator->appends($this->request->all());
+
+        return $paginator;
     }
 
     /**
-     * Return a collection of query results.
+     * Return the paginator presenter markup.
      *
-     * @param boolean $paginate
-     * @return \Illuminate\Support\Collection
+     * @return string
      */
-    public function getRows($paginate = true)
+    public function paginator()
     {
-        if ($this->rows) {
-            return $this->rows;
+        $paginator = $this->paginate();
+
+        if (!is_null($this->presenter)) {
+            return (new $this->presenter($paginator))->render();
         }
 
-        $per_page = $this->request->input('per_page') ?: null;
-
-        return $this->rows = ($paginate ? $this->builder->paginate($per_page) : $this->builder->get());
-    }
-
-    /**
-     * Return true if the query has records.
-     *
-     * @return boolean
-     */
-    public function hasRows()
-    {
-        return (bool) $this->builder->exists();
-    }
-
-    /**
-     * Return custom paginator configured to append to existing URL parameters.
-     *
-     * @return array
-     */
-    public function getPaginator()
-    {
-        return new $this->presenter($this->getRows()->appends($this->request->all()));
+        return $paginator->render();
     }
 
     /**
@@ -279,18 +343,14 @@ abstract class Table
         return $sortOrder == $this->sortOrder;
     }
 
-    /**
-     * Add a relationship to the eager loads.
-     *
-     * @param mixed $relation
-     * @return void
-     */
-    public function addEagerLoad($relation)
+    public function __call($method, $parameters)
     {
-        if (is_array($relation)) {
-            $this->eagerLoad = array_values($relation) + $this->eagerLoad;
-        } else {
-            $this->eagerLoad[] = $relation;
+        if (is_callable([$this->db, $method])) {
+            return call_user_func_array([$this->db, $method], $parameters);
         }
+
+        $class_name = get_class($this);
+
+        throw new BadMethodCallException("Call to undefined method {$class_name}::{$method}()");
     }
 }
