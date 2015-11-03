@@ -124,7 +124,7 @@ abstract class Table
     {
         // Set the default sorting settings
         if (is_null($this->defaultSortKey)) {
-            $this->defaultSortKey = array_keys($this->columnHeaders)[0];
+            $this->defaultSortKey = array_values($this->columnHeaders)[0];
         }
 
         if (is_null($this->defaultSortOrder)) {
