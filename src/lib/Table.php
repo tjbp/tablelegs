@@ -165,14 +165,15 @@ abstract class Table
                 }
             } elseif ($db instanceof \Illuminate\Support\Collection) {
                 $this->db = new Databases\LaravelCollection($db);
-            } elseif ($db instanceof \Illuminate\Database\Eloquent\Builder) {
+            } elseif ($db instanceof \Illuminate\Database\Eloquent\Builder
+                || $db instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
                 $this->db = new Databases\LaravelEloquent($db);
             } elseif (!is_object($db)) {
-                throw new InvalidArgumentException('Source data must be an object or array');
+                throw new InvalidArgumentException('Database must be an object or array');
             } else {
                 $class_name = get_class($db);
 
-                throw new DomainException("Please add source class for handling $class_name objects");
+                throw new DomainException("Please add database class for handling $class_name objects");
             }
         } else {
             $this->db = new $dbClass($db);
