@@ -32,84 +32,84 @@ abstract class Table
     /**
      * Data source for the rows.
      *
-     * @var $db
+     * @var \Tablelegs\Databases\Databases
      */
     protected $db;
 
     /**
      * Current request object.
      *
-     * @var $request
+     * @var \Illuminate\Http\Request
      */
     private $request;
 
     /**
      * Column headers for the table. URL-friendly keys with human values.
      *
-     * @var $columnHeaders
+     * @var array
      */
     public $columnHeaders = [];
 
     /**
      * Array of TableColumnHeader objects.
      *
-     * @var $columnHeaderObjects
+     * @var array
      */
     public $columnHeaderObjects = [];
 
     /**
      * Array of arrays; filter names containing available options.
      *
-     * @var $filters
+     * @var array
      */
     public $filters = [];
 
     /**
      * Array of TableFilter objects.
      *
-     * @var $filterObjects
+     * @var array
      */
     public $filterObjects = [];
 
     /**
      * Class name for the data source wrapper.
      *
-     * @var $dbClass
+     * @var string
      */
     public $dbClass;
 
     /**
      * Class name for the paginator presenter.
      *
-     * @var $presenter
+     * @var string
      */
     public $presenter;
 
     /**
      * Default key to sort by.
      *
-     * @var $defaultSortKey
+     * @var string
      */
     public $defaultSortKey;
 
     /**
      * Default sort order.
      *
-     * @var $defaultSortOrder
+     * @var string
      */
     public $defaultSortOrder;
 
     /**
      * Key the current request will be sorted by.
      *
-     * @var $sortKey
+     * @var string
      */
     private $sortKey;
 
     /**
      * Sort order for the current request.
      *
-     * @var $sortOrder
+     * @var string
      */
     private $sortOrder;
 

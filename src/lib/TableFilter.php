@@ -28,28 +28,28 @@ class TableFilter
     /**
      * URL-friendly key for the filter.
      *
-     * @var $key
+     * @var string
      */
     private $key;
 
     /**
      * Human name for the filter.
      *
-     * @var $name
+     * @var string
      */
     private $name;
 
     /**
      * Array of possible filter options.
      *
-     * @var $options
+     * @var array
      */
     private $options;
 
     /**
      * Current request object.
      *
-     * @var $request
+     * @var \Illuminate\Http\Request
      */
     private $request;
 

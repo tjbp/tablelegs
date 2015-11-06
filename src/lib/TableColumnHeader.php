@@ -28,21 +28,21 @@ class TableColumnHeader
     /**
      * URL-friendly key for the column header.
      *
-     * @var $key
+     * @var string
      */
     private $key;
 
     /**
      * Human name for the column header.
      *
-     * @var $name
+     * @var string
      */
     private $name;
 
     /**
      * Current request object.
      *
-     * @var $request
+     * @var \Illuminate\Http\Request
      */
     private $request;
 
