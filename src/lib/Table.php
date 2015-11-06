@@ -58,7 +58,7 @@ abstract class Table
     public $columnHeaderObjects = [];
 
     /**
-     * Array of arrays; filter names containing available options.
+     * Array of filter names containing available options and their keys.
      *
      * @var array
      */
