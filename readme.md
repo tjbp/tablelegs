@@ -1,5 +1,12 @@
 # Tablelegs
 
+[![StyleCI](https://styleci.io/repos/43848070/shield?style=flat)](https://styleci.io/repos/43848070)
+[![Build Status](https://travis-ci.org/tjbp/tablelegs.svg)](https://travis-ci.org/tjbp/tablelegs)
+[![Total Downloads](https://poser.pugx.org/tjbp/tablelegs/d/total.svg)](https://packagist.org/packages/tjbp/tablelegs)
+[![Latest Stable Version](https://poser.pugx.org/tjbp/tablelegs/v/stable.svg)](https://packagist.org/packages/tjbp/tablelegs)
+[![Latest Unstable Version](https://poser.pugx.org/tjbp/tablelegs/v/unstable.svg)](https://packagist.org/packages/tjbp/tablelegs)
+[![License](https://poser.pugx.org/tjbp/tablelegs/license.svg)](https://packagist.org/packages/tjbp/tablelegs)
+
 Tablelegs allows you to easily build an HTML table from a database, including support for filters, sortable columns and pagination. Tablelegs does not output HTML, it simply provides helpers for outputting a table according to a purpose-built class and can generate URLs for enabling filters and sorting.
 
 ## Installation
