@@ -173,4 +173,4 @@ Views for use with Laravel's Blade templating system and [ZURB Foundation](http:
 
 ### Licence
 
-Tablelegs is free and gratis software licensed under the [GPL3 licence](https://www.gnu.org/licenses/gpl-3.0). This allows you to use Tablelegs for commercial purposes, but any derivative works (adaptations to the code) must also be released under the same licence. Mustard is built upon the [Laravel framework](http://laravel.com), which is licensed under the [MIT licence](http://opensource.org/licenses/MIT).
+Tablelegs is free and gratis software licensed under the [GPL3 licence](https://www.gnu.org/licenses/gpl-3.0).
