@@ -22,14 +22,13 @@ along with Tablelegs.  If not, see <http://www.gnu.org/licenses/>.
 namespace Tablelegs\Databases;
 
 use BadMethodCallException;
-use Illuminate\Http\Request;
 
 abstract class Database
 {
     /**
      * The underlying database.
      *
-     * @var $db
+     * @var
      */
     protected $db;
 
@@ -37,6 +36,7 @@ abstract class Database
      * Constructor for dependency injection.
      *
      * @param mixed $db
+     *
      * @return void
      */
     public function __construct($db)
@@ -49,7 +49,8 @@ abstract class Database
      * database.
      *
      * @param string $method
-     * @param array $parameters
+     * @param array  $parameters
+     *
      * @return mixed
      */
     public function __call($method, $parameters)

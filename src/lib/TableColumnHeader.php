@@ -50,8 +50,9 @@ class TableColumnHeader
      * Constructor for dependency injection.
      *
      * @param \Illuminate\Http\Request $request
-     * @param string $key
-     * @param array $name
+     * @param string                   $key
+     * @param array                    $name
+     *
      * @return void
      */
     public function __construct(Table $table, Request $request, $key, $name)
@@ -102,13 +103,13 @@ class TableColumnHeader
             $params['sort_order'] = $this->request->input('sort_order') == 'desc' ? 'asc' : 'desc';
         }
 
-        return '?' . http_build_query($params + $this->request->all());
+        return '?'.http_build_query($params + $this->request->all());
     }
 
     /**
      * Return true if the current request is sorted according to this column header.
      *
-     * @return boolean
+     * @return bool
      */
     public function isSortKey()
     {
@@ -118,7 +119,7 @@ class TableColumnHeader
     /**
      * Return true if this column header is sortable (non-null key).
      *
-     * @return boolean
+     * @return bool
      */
     public function isSortable()
     {

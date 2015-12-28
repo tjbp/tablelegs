@@ -116,8 +116,9 @@ abstract class Table
     /**
      * Constructor for populating various properties.
      *
-     * @param mixed $db
+     * @param mixed                         $db
      * @param \Illuminate\Http\Request|null $request
+     *
      * @return void
      */
     public function __construct($db, $request = null)
@@ -152,6 +153,7 @@ abstract class Table
      * Instantiate the database.
      *
      * @param mixed $db
+     *
      * @return void
      */
     private function constructDatabase($db)
@@ -233,7 +235,7 @@ abstract class Table
                     continue;
                 }
 
-                $filter_method = 'filter' . Str::studly($filter_key) . Str::studly($filter_option);
+                $filter_method = 'filter'.Str::studly($filter_key).Str::studly($filter_option);
 
                 if (method_exists($this, $filter_method)) {
                     $this->$filter_method();
@@ -249,7 +251,7 @@ abstract class Table
      */
     private function runSorting()
     {
-        $sort_method = 'sort' . studly_case($this->sortKey);
+        $sort_method = 'sort'.studly_case($this->sortKey);
 
         // Apply the sorting for the query
         if (method_exists($this, $sort_method)) {
@@ -299,7 +301,6 @@ abstract class Table
         return $this->columnHeaderObjects;
     }
 
-
     /**
      * Return paginated rows.
      *
@@ -337,7 +338,7 @@ abstract class Table
     /**
      * Return true if the passed argument is the current table's sort order.
      *
-     * @return boolean
+     * @return bool
      */
     public function isSortOrder($sortOrder)
     {
