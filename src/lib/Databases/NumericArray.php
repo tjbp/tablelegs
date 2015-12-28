@@ -21,8 +21,8 @@ along with Tablelegs.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Tablelegs\Databases;
 
-use Illuminate\Pagination\Paginator;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 class NumericArray extends Database implements DatabaseInterface
 {
@@ -31,6 +31,7 @@ class NumericArray extends Database implements DatabaseInterface
      *
      * @param string $key
      * @param string $order
+     *
      * @return void
      */
     public function sort($key, $order)
@@ -63,10 +64,11 @@ class NumericArray extends Database implements DatabaseInterface
     /**
      * Return the paginated dataset of the underlying database.
      *
-     * @param int $perPage
-     * @param array $columns
+     * @param int    $perPage
+     * @param array  $columns
      * @param string $pageName
-     * @param int $page
+     * @param int    $page
+     *
      * @return \Illuminate\Pagination\Paginator
      */
     public function paginate($perPage, $columns, $pageName, $page)
@@ -78,7 +80,7 @@ class NumericArray extends Database implements DatabaseInterface
         $results = array_slice($this->get(), ($page - 1) * $perPage, $perPage);
 
         return new LengthAwarePaginator($results, $total, $perPage, $page, [
-            'path' => Paginator::resolveCurrentPath(),
+            'path'     => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
         ]);
     }

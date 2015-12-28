@@ -28,6 +28,7 @@ interface DatabaseInterface
      *
      * @param string $key
      * @param string $order
+     *
      * @return void
      */
     public function sort($key, $order);
@@ -42,10 +43,11 @@ interface DatabaseInterface
     /**
      * Return the paginated dataset of the underlying database.
      *
-     * @param int $perPage
-     * @param array $columns
+     * @param int    $perPage
+     * @param array  $columns
      * @param string $pageName
-     * @param int $page
+     * @param int    $page
+     *
      * @return \Illuminate\Pagination\Paginator
      */
     public function paginate($perPage, $columns, $pageName, $page);

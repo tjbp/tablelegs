@@ -57,8 +57,9 @@ class TableFilter
      * Constructor for dependency injection and to create option keys.
      *
      * @param \Illuminate\Http\Request $request
-     * @param string $name
-     * @param array $options
+     * @param string                   $name
+     * @param array                    $options
+     *
      * @return void
      */
     public function __construct(Request $request, $name, $options)
@@ -98,10 +99,10 @@ class TableFilter
 
             unset($params[$this->getKey()]);
 
-            return '?' . http_build_query($params);
+            return '?'.http_build_query($params);
         }
 
-        return '?' . http_build_query([$this->key => $option] + $this->request->all());
+        return '?'.http_build_query([$this->key => $option] + $this->request->all());
     }
 
     /**
@@ -128,7 +129,8 @@ class TableFilter
      * Check if a filter option is active for the current request.
      *
      * @param string $option
-     * @return boolean
+     *
+     * @return bool
      */
     public function isActive($option)
     {
